@@ -11,8 +11,8 @@
 #include <algorithm>
 
 using namespace std;
-using PointVector = ikdTree::KD_TREE<double>::PointVector;
-using PointType = ikdTree::KD_TREE<double>::PointType;
+using PointVector = ikdTree::KdTree<double>::PointVector;
+using PointType = ikdTree::KdTree<double>::PointType;
 #define X_MAX 5.0
 #define X_MIN -5.0
 #define Y_MAX 5.0
@@ -40,7 +40,7 @@ PointVector raw_cmp_result;
 PointVector DeletePoints;
 PointVector removed_points;
 
-ikdTree::KD_TREE<double> ikd_Tree(0.3,0.6,0.2);
+ikdTree::KdTree<double> ikd_Tree(0.3,0.6,0.2);
 
 float rand_float(float x_min, float x_max){
     float rand_ratio = rand()/(float)RAND_MAX;
@@ -110,12 +110,12 @@ void generate_box_increment(vector<ikdTree::BoxPointType> & Add_Boxes, float box
         x_p = rand_float(X_MIN, X_MAX);
         y_p = rand_float(Y_MIN, Y_MAX);
         z_p = rand_float(Z_MIN, Z_MAX);        
-        boxpoint.vertex_min[0] = x_p - d;
-        boxpoint.vertex_max[0] = x_p + d;
-        boxpoint.vertex_min[1] = y_p - d;
-        boxpoint.vertex_max[1] = y_p + d;  
-        boxpoint.vertex_min[2] = z_p - d;
-        boxpoint.vertex_max[2] = z_p + d;
+        boxpoint.minVertex[0] = x_p - d;
+        boxpoint.maxVertex[0] = x_p + d;
+        boxpoint.minVertex[1] = y_p - d;
+        boxpoint.maxVertex[1] = y_p + d;  
+        boxpoint.minVertex[2] = z_p - d;
+        boxpoint.maxVertex[2] = z_p + d;
         Add_Boxes.push_back(boxpoint);
         int n = cloud_deleted.size();
         int counter = 0;
@@ -123,7 +123,7 @@ void generate_box_increment(vector<ikdTree::BoxPointType> & Add_Boxes, float box
             PointType tmp = cloud_deleted[cloud_deleted.size()-1];
             cloud_deleted.pop_back();
         
-            if (tmp.x() +EPSS < boxpoint.vertex_min[0] || tmp.x() - EPSS > boxpoint.vertex_max[0] || tmp.y() + EPSS < boxpoint.vertex_min[1] || tmp.y() - EPSS > boxpoint.vertex_max[1] || tmp.z() + EPSS < boxpoint.vertex_min[2] || tmp.z() - EPSS > boxpoint.vertex_max[2]){
+            if (tmp.x() +EPSS < boxpoint.minVertex[0] || tmp.x() - EPSS > boxpoint.maxVertex[0] || tmp.y() + EPSS < boxpoint.minVertex[1] || tmp.y() - EPSS > boxpoint.maxVertex[1] || tmp.z() + EPSS < boxpoint.minVertex[2] || tmp.z() - EPSS > boxpoint.maxVertex[2]){
                 cloud_deleted.insert(cloud_deleted.begin(),tmp);
             } else {            
                 point_cloud.push_back(tmp);
@@ -146,19 +146,19 @@ void generate_box_decrement(vector<ikdTree::BoxPointType> & Delete_Boxes, float 
         x_p = rand_float(X_MIN, X_MAX);
         y_p = rand_float(Y_MIN, Y_MAX);
         z_p = rand_float(Z_MIN, Z_MAX);        
-        boxpoint.vertex_min[0] = x_p - d;
-        boxpoint.vertex_max[0] = x_p + d;
-        boxpoint.vertex_min[1] = y_p - d;
-        boxpoint.vertex_max[1] = y_p + d;  
-        boxpoint.vertex_min[2] = z_p - d;
-        boxpoint.vertex_max[2] = z_p + d;
+        boxpoint.minVertex[0] = x_p - d;
+        boxpoint.maxVertex[0] = x_p + d;
+        boxpoint.minVertex[1] = y_p - d;
+        boxpoint.maxVertex[1] = y_p + d;  
+        boxpoint.minVertex[2] = z_p - d;
+        boxpoint.maxVertex[2] = z_p + d;
         Delete_Boxes.push_back(boxpoint);
         int n = point_cloud.size();
         int counter = 0;
         while (counter < n){
             PointType tmp = point_cloud[point_cloud.size()-1];
             point_cloud.pop_back();            
-            if (tmp.x() +EPSS < boxpoint.vertex_min[0] || tmp.x() - EPSS > boxpoint.vertex_max[0] || tmp.y() + EPSS < boxpoint.vertex_min[1] || tmp.y() - EPSS > boxpoint.vertex_max[1] || tmp.z() + EPSS < boxpoint.vertex_min[2] || tmp.z() - EPSS > boxpoint.vertex_max[2]){
+            if (tmp.x() +EPSS < boxpoint.minVertex[0] || tmp.x() - EPSS > boxpoint.maxVertex[0] || tmp.y() + EPSS < boxpoint.minVertex[1] || tmp.y() - EPSS > boxpoint.maxVertex[1] || tmp.z() + EPSS < boxpoint.minVertex[2] || tmp.z() - EPSS > boxpoint.maxVertex[2]){
                 point_cloud.insert(point_cloud.begin(),tmp);                  
             } else {
                 cloud_deleted.push_back(tmp);
@@ -201,7 +201,7 @@ int main(int argc, char** argv){
     // Initialize k-d tree
     generate_initial_point_cloud(Point_Num);
     auto t1 = chrono::high_resolution_clock::now();
-    ikd_Tree.Build(point_cloud);    
+    ikd_Tree.build(point_cloud);
     auto t2 = chrono::high_resolution_clock::now();    
     auto build_duration = chrono::duration_cast<chrono::microseconds>(t2-t1).count();
     while (counter < Test_Time){           
@@ -209,7 +209,7 @@ int main(int argc, char** argv){
         // Point-wise Insertion
         generate_increment_point_cloud(New_Point_Num);
         t1 = chrono::high_resolution_clock::now();
-        ikd_Tree.Add_Points(cloud_increment, false);
+        ikd_Tree.addPoints(cloud_increment, false);
         t2 = chrono::high_resolution_clock::now();
         auto add_duration = chrono::duration_cast<chrono::microseconds>(t2-t1).count();      
         auto total_duration = add_duration;
@@ -217,7 +217,7 @@ int main(int argc, char** argv){
         // Point-wise Delete
         generate_decrement_point_cloud(Delete_Point_Num);            
         t1 = chrono::high_resolution_clock::now();
-        ikd_Tree.Delete_Points(cloud_decrement);
+        ikd_Tree.deletePoints(cloud_decrement);
         t2 = chrono::high_resolution_clock::now();
         auto delete_duration = chrono::duration_cast<chrono::microseconds>(t2-t1).count();       
         total_duration += delete_duration;
@@ -228,7 +228,7 @@ int main(int argc, char** argv){
             printf("Waiting to generate 4 cuboids for box-wise delete test...\n");
             generate_box_decrement(Delete_Boxes, Box_Length, Box_Num);
             t1 = chrono::high_resolution_clock::now();
-            ikd_Tree.Delete_Point_Boxes(Delete_Boxes);
+            ikd_Tree.deletePointBoxes(Delete_Boxes);
             t2 = chrono::high_resolution_clock::now();            
             box_delete_counter ++;
             box_delete_duration += chrono::duration_cast<chrono::microseconds>(t2-t1).count();
@@ -240,7 +240,7 @@ int main(int argc, char** argv){
         if (Add_Box_Switch && (counter+1) % 100  == 0){ 
             generate_box_increment(Add_Boxes, Box_Length, Box_Num);
             t1 = chrono::high_resolution_clock::now();
-            ikd_Tree.Add_Point_Boxes(Add_Boxes);
+            ikd_Tree.addPointBoxes(Add_Boxes);
             t2 = chrono::high_resolution_clock::now();            
             box_add_counter ++;
             box_add_duration += chrono::duration_cast<chrono::microseconds>(t2-t1).count();
@@ -253,7 +253,7 @@ int main(int argc, char** argv){
             PointVector ().swap(search_result);             
             target = generate_target_point();    
             t1 = chrono::high_resolution_clock::now();
-            ikd_Tree.Nearest_Search(target, Nearest_Num, search_result, PointDist);
+            ikd_Tree.searchNearest(target, Nearest_Num, search_result, PointDist);
             t2 = chrono::high_resolution_clock::now();
             search_duration += chrono::duration_cast<chrono::microseconds>(t2-t1).count();
         }
@@ -263,7 +263,7 @@ int main(int argc, char** argv){
         printf("Tree size is: %d\n\n", ikd_Tree.size());
         // If necessary, the removed points can be collected.
         PointVector ().swap(removed_points);
-        ikd_Tree.acquire_removed_points(removed_points);
+        ikd_Tree.getRemovedPoints(removed_points);
         // Calculate total running time
         average_total_time += float(total_duration)/1e3;
         box_delete_time += float(box_delete_duration)/1e3;

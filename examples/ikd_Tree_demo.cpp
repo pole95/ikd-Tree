@@ -11,17 +11,8 @@
 #include <algorithm>
 
 using namespace std;
-struct PointType {
-  double x, y, z;
-
-  PointType(double px = 0.0f, double py = 0.0f, double pz = 0.0f) {
-    x = px;
-    y = py;
-    z = pz;
-  }
-};
-using PointVector = ikdTree::KD_TREE<PointType>::PointVector;
-
+using PointVector = ikdTree::KD_TREE<double>::PointVector;
+using PointType = ikdTree::KD_TREE<double>::PointType;
 #define X_MAX 5.0
 #define X_MIN -5.0
 #define Y_MAX 5.0
@@ -49,7 +40,7 @@ PointVector raw_cmp_result;
 PointVector DeletePoints;
 PointVector removed_points;
 
-ikdTree::KD_TREE<PointType> ikd_Tree(0.3,0.6,0.2);
+ikdTree::KD_TREE<double> ikd_Tree(0.3,0.6,0.2);
 
 float rand_float(float x_min, float x_max){
     float rand_ratio = rand()/(float)RAND_MAX;
@@ -65,9 +56,9 @@ void generate_initial_point_cloud(int num){
     PointVector ().swap(point_cloud);
     PointType new_point;
     for (int i=0;i<num;i++){
-        new_point.x = rand_float(X_MIN, X_MAX);
-        new_point.y = rand_float(Y_MIN, Y_MAX);
-        new_point.z = rand_float(Z_MIN, Z_MAX);
+        new_point.x() = rand_float(X_MIN, X_MAX);
+        new_point.y() = rand_float(Y_MIN, Y_MAX);
+        new_point.z() = rand_float(Z_MIN, Z_MAX);
         point_cloud.push_back(new_point);
     }
     return;
@@ -81,9 +72,9 @@ void generate_increment_point_cloud(int num){
     PointVector ().swap(cloud_increment);
     PointType new_point;
     for (int i=0;i<num;i++){
-        new_point.x = rand_float(X_MIN, X_MAX);
-        new_point.y = rand_float(Y_MIN, Y_MAX);
-        new_point.z = rand_float(Z_MIN, Z_MAX);
+        new_point.x() = rand_float(X_MIN, X_MAX);
+        new_point.y() = rand_float(Y_MIN, Y_MAX);
+        new_point.z() = rand_float(Z_MIN, Z_MAX);
         point_cloud.push_back(new_point);
         cloud_increment.push_back(new_point);        
     }
@@ -132,7 +123,7 @@ void generate_box_increment(vector<ikdTree::BoxPointType> & Add_Boxes, float box
             PointType tmp = cloud_deleted[cloud_deleted.size()-1];
             cloud_deleted.pop_back();
         
-            if (tmp.x +EPSS < boxpoint.vertex_min[0] || tmp.x - EPSS > boxpoint.vertex_max[0] || tmp.y + EPSS < boxpoint.vertex_min[1] || tmp.y - EPSS > boxpoint.vertex_max[1] || tmp.z + EPSS < boxpoint.vertex_min[2] || tmp.z - EPSS > boxpoint.vertex_max[2]){
+            if (tmp.x() +EPSS < boxpoint.vertex_min[0] || tmp.x() - EPSS > boxpoint.vertex_max[0] || tmp.y() + EPSS < boxpoint.vertex_min[1] || tmp.y() - EPSS > boxpoint.vertex_max[1] || tmp.z() + EPSS < boxpoint.vertex_min[2] || tmp.z() - EPSS > boxpoint.vertex_max[2]){
                 cloud_deleted.insert(cloud_deleted.begin(),tmp);
             } else {            
                 point_cloud.push_back(tmp);
@@ -167,7 +158,7 @@ void generate_box_decrement(vector<ikdTree::BoxPointType> & Delete_Boxes, float 
         while (counter < n){
             PointType tmp = point_cloud[point_cloud.size()-1];
             point_cloud.pop_back();            
-            if (tmp.x +EPSS < boxpoint.vertex_min[0] || tmp.x - EPSS > boxpoint.vertex_max[0] || tmp.y + EPSS < boxpoint.vertex_min[1] || tmp.y - EPSS > boxpoint.vertex_max[1] || tmp.z + EPSS < boxpoint.vertex_min[2] || tmp.z - EPSS > boxpoint.vertex_max[2]){
+            if (tmp.x() +EPSS < boxpoint.vertex_min[0] || tmp.x() - EPSS > boxpoint.vertex_max[0] || tmp.y() + EPSS < boxpoint.vertex_min[1] || tmp.y() - EPSS > boxpoint.vertex_max[1] || tmp.z() + EPSS < boxpoint.vertex_min[2] || tmp.z() - EPSS > boxpoint.vertex_max[2]){
                 point_cloud.insert(point_cloud.begin(),tmp);                  
             } else {
                 cloud_deleted.push_back(tmp);
@@ -184,9 +175,9 @@ void generate_box_decrement(vector<ikdTree::BoxPointType> & Delete_Boxes, float 
 
 PointType generate_target_point(){
     PointType point;
-    point.x = rand_float(X_MIN, X_MAX);;
-    point.y = rand_float(Y_MIN, Y_MAX);
-    point.z = rand_float(Z_MIN, Z_MAX);
+    point.x() = rand_float(X_MIN, X_MAX);;
+    point.y() = rand_float(Y_MIN, Y_MAX);
+    point.z() = rand_float(Z_MIN, Z_MAX);
     return point;
 }
 
@@ -206,7 +197,7 @@ int main(int argc, char** argv){
     float search_time = 0.0;
     int box_delete_counter = 0;
     int box_add_counter = 0;
-    PointType target; 
+    PointType target;
     // Initialize k-d tree
     generate_initial_point_cloud(Point_Num);
     auto t1 = chrono::high_resolution_clock::now();

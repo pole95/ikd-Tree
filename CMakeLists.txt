@@ -6,8 +6,11 @@ add_compile_options(-std=c++14)
 set(CMAKE_CXX_FLAGS "-std=c++14 -pthread -O3") 
 
 find_package(PCL 1.8 REQUIRED)
+find_package(Eigen3 REQUIRED)
+
 
 include_directories(
+    ${EIGEN3_INCLUDE_DIRS}
     ${PCL_INCLUDE_DIRS}
     ikd-Tree
 )

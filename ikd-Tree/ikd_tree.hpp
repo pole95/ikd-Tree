@@ -508,7 +508,6 @@ class KdTree {
       if (shouldDownsample) (*root)->pointDeletedDownsample_ = true;
     }
     OperationLoggerType boxDeleteOperation;
-    struct timespec Timeout;
     if (shouldDownsample)
       boxDeleteOperation.op = DOWNSAMPLE_DELETE;
     else
@@ -545,7 +544,7 @@ class KdTree {
     if ((*root) != nullptr) (*root)->isWorking = false;
     return counter;
   };
-  
+
   void deletePoint(KdTreeNode** root, PointType point, bool allowRebuild) {
     if ((*root) == nullptr || (*root)->treeDeleted_) return;
     (*root)->isWorking = true;
@@ -557,7 +556,6 @@ class KdTree {
       return;
     }
     OperationLoggerType deleteOperation;
-    struct timespec Timeout;
     deleteOperation.op = DELETE_POINT;
     deleteOperation.point_ = point;
     if (((*root)->divisionAxis_ == 0 && point.x() < (*root)->point_.x()) ||
@@ -607,7 +605,6 @@ class KdTree {
     }
     (*root)->isWorking = true;
     OperationLoggerType addOperation;
-    struct timespec Timeout;
     addOperation.op = ADD_POINT;
     addOperation.point_ = point_;
     pushDown(*root);
@@ -646,7 +643,7 @@ class KdTree {
     if (needsRebuild) rebuild(root);
     if ((*root) != nullptr) (*root)->isWorking = false;
   };
-  
+
   void addRange(KdTreeNode** root, BoxPointType boxpoint, bool allowRebuild) {
     if ((*root) == nullptr) return;
     (*root)->isWorking = true;
@@ -670,7 +667,6 @@ class KdTree {
       (*root)->pointDeleted_ = (*root)->pointDeletedDownsample_;
     }
     OperationLoggerType boxAddOperation;
-    struct timespec Timeout;
     boxAddOperation.op = ADD_BOX;
     boxAddOperation.boxpoint = boxpoint;
     if ((rebuildNode_ == nullptr) || (*root)->leftSon_ != *rebuildNode_) {
@@ -703,8 +699,7 @@ class KdTree {
     if (needsRebuild) rebuild(root);
     if ((*root) != nullptr) (*root)->isWorking = false;
   };
-  
-  
+
   void search(KdTreeNode* root, int kNearest, PointType point, ManualHeap& q, double maxDistance) {
     if (root == nullptr || root->treeDeleted_) return;
     double currentDistance = calculateBoxDistance(root, point);
@@ -843,7 +838,7 @@ class KdTree {
       }
     }
   };
-  
+
   void searchRange(KdTreeNode* root, BoxPointType boxpoint, PointVector& storage) {
     if (root == nullptr) return;
     pushDown(root);
@@ -925,7 +920,7 @@ class KdTree {
     }
     return false;
   };
-  
+
   void pushDown(KdTreeNode* root) {
     if (root == nullptr) return;
     OperationLoggerType operation;
@@ -1005,7 +1000,7 @@ class KdTree {
       }
     }
   };
-  
+
   void update(KdTreeNode* root) {
     KdTreeNode* leftSon = root->leftSon_;
     KdTreeNode* rightSon = root->rightSon_;
@@ -1018,8 +1013,7 @@ class KdTree {
       root->invalidPointNum_ = leftSon->invalidPointNum_ + rightSon->invalidPointNum_ + (root->pointDeleted_ ? 1 : 0);
       root->downsampledDeleteNum_ =
           leftSon->downsampledDeleteNum_ + rightSon->downsampledDeleteNum_ + (root->pointDeletedDownsample_ ? 1 : 0);
-      root->treeDeletedDownsample_ =
-          leftSon->treeDeletedDownsample_ & rightSon->treeDeletedDownsample_ & root->pointDeletedDownsample_;
+      root->treeDeletedDownsample_ = leftSon->treeDeletedDownsample_ & rightSon->treeDeletedDownsample_ & root->pointDeletedDownsample_;
       root->treeDeleted_ = leftSon->treeDeleted_ && rightSon->treeDeleted_ && root->pointDeleted_;
       if (root->treeDeleted_ || (!leftSon->treeDeleted_ && !rightSon->treeDeleted_ && !root->pointDeleted_)) {
         rangeTempX[0] = min(min(leftSon->nodeRangeX_[0], rightSon->nodeRangeX_[0]), root->point_.x());
@@ -1147,7 +1141,7 @@ class KdTree {
       root->alphaBal_ = (tmp_bal >= 0.5 - EPSS) ? tmp_bal : 1 - tmp_bal;
     }
   };
-  
+
   void deleteTreeNodes(KdTreeNode** root) {
     if (*root == nullptr) return;
     pushDown(*root);
@@ -1158,17 +1152,17 @@ class KdTree {
     delete *root;
     *root = nullptr;
   };
-  
+
   bool isSamePoint(PointType a, PointType b) {
     return (fabs(a.x() - b.x()) < EPSS && fabs(a.y() - b.y()) < EPSS && fabs(a.z() - b.z()) < EPSS);
   };
-  
+
   double calculateDistance(PointType a, PointType b) {
     double dist = 0.0f;
     dist = (a.x() - b.x()) * (a.x() - b.x()) + (a.y() - b.y()) * (a.y() - b.y()) + (a.z() - b.z()) * (a.z() - b.z());
     return dist;
   };
-  
+
   double calculateBoxDistance(KdTreeNode* node, PointType point_) {
     if (node == nullptr) return INFINITY;
     double minDist = 0.0;
@@ -1180,13 +1174,13 @@ class KdTree {
     if (point_.z() > node->nodeRangeZ_[1]) minDist += (point_.z() - node->nodeRangeZ_[1]) * (point_.z() - node->nodeRangeZ_[1]);
     return minDist;
   };
-  
+
   static bool compareX(PointType a, PointType b) { return a.x() < b.x(); };
   static bool compareY(PointType a, PointType b) { return a.y() < b.y(); };
   static bool compareZ(PointType a, PointType b) { return a.z() < b.z(); };
 
  public:
-  KdTree(double delete_param = 0.5, double balance_param = 0.6, double box_length = 0.2) {
+  explicit KdTree(double delete_param = 0.5, double balance_param = 0.6, double box_length = 0.2) {
     deleteCriterion_ = delete_param;
     balanceCriterion_ = balance_param;
     downsampleSize_ = box_length;
@@ -1194,14 +1188,14 @@ class KdTree {
     isDone_ = false;
     startThread();
   };
-  
+
   ~KdTree() {
     stopThread();
     deleteTreeNodes(&rootNode_);
     PointVector().swap(pointStorage_);
     rebuildLogger_.clear();
   };
-  
+
   void setDeleteCriterion(double delete_param) { deleteCriterion_ = delete_param; };
   void setBalanceCriterion(double balance_param) { balanceCriterion_ = balance_param; };
   void setDownsampleSize(double box_length) { downsampleSize_ = box_length; };
@@ -1247,7 +1241,7 @@ class KdTree {
       }
     }
   };
-  
+
   void rootAlpha(double& alphaBal_, double& alphaDel_) {
     if (rebuildNode_ == nullptr || *rebuildNode_ != rootNode_) {
       alphaBal_ = rootNode_->alphaBal_;
@@ -1266,7 +1260,7 @@ class KdTree {
       }
     }
   };
-  
+
   void build(PointVector point_cloud) {
     if (rootNode_ != nullptr) {
       deleteTreeNodes(&rootNode_);
@@ -1279,9 +1273,9 @@ class KdTree {
     STATIC_ROOT_NODE->treeSize_ = 0;
     rootNode_ = STATIC_ROOT_NODE->leftSon_;
   };
-  
+
   void searchNearest(PointType point_, int k_nearest, PointVector& Nearest_Points, vector<double>& Point_Distance,
-                      double maxDistance = INFINITY) {
+                     double maxDistance = INFINITY) {
     ManualHeap q(2 * k_nearest);
     q.clear();
     vector<double>().swap(Point_Distance);
@@ -1310,13 +1304,12 @@ class KdTree {
       q.pop();
     }
   };
-  
-  
+
   void searchBox(const BoxPointType& Box_of_Point, PointVector& storage) {
     storage.clear();
     searchRange(rootNode_, Box_of_Point, storage);
   };
-  
+
   void searchRadius(PointType point_, const double radius, PointVector& storage) {
     storage.clear();
     radiusSearch(rootNode_, point_, radius, storage);
@@ -1399,16 +1392,16 @@ class KdTree {
     return counter;
   };
 
-  void addPointBoxes(vector<BoxPointType>& BoxPoints) {
-    for (int i = 0; i < BoxPoints.size(); i++) {
+  void addPointBoxes(vector<BoxPointType>& boxPoints) {
+    for (const auto boxPt : boxPoints) {
       if (rebuildNode_ == nullptr || *rebuildNode_ != rootNode_) {
-        addRange(&rootNode_, BoxPoints[i], true);
+        addRange(&rootNode_, boxPt, true);
       } else {
         OperationLoggerType operation;
-        operation.boxpoint = BoxPoints[i];
+        operation.boxpoint = boxPt;
         operation.op = ADD_BOX;
         pthread_mutex_lock(&isRebuildLock_);
-        addRange(&rootNode_, BoxPoints[i], false);
+        addRange(&rootNode_, boxPt, false);
         if (isRebuild_) {
           pthread_mutex_lock(&rebuildLoggerLock_);
           rebuildLogger_.push(operation);
@@ -1437,17 +1430,17 @@ class KdTree {
       }
     }
   };
-  int deletePointBoxes(vector<BoxPointType>& BoxPoints) {
+  int deletePointBoxes(vector<BoxPointType>& boxPoints) {
     int counter = 0;
-    for (int i = 0; i < BoxPoints.size(); i++) {
+    for (const auto& boxPt : boxPoints) {
       if (rebuildNode_ == nullptr || *rebuildNode_ != rootNode_) {
-        counter += deleteRange(&rootNode_, BoxPoints[i], true, false);
+        counter += deleteRange(&rootNode_, boxPt, true, false);
       } else {
         OperationLoggerType operation;
-        operation.boxpoint = BoxPoints[i];
+        operation.boxpoint = boxPt;
         operation.op = DELETE_BOX;
         pthread_mutex_lock(&isRebuildLock_);
-        counter += deleteRange(&rootNode_, BoxPoints[i], false, false);
+        counter += deleteRange(&rootNode_, boxPt, false, false);
         if (isRebuild_) {
           pthread_mutex_lock(&rebuildLoggerLock_);
           rebuildLogger_.push(operation);

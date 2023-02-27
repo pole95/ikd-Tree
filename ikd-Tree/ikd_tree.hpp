@@ -1315,12 +1315,12 @@ class KdTree {
     radiusSearch(rootNode_, point_, radius, storage);
   };
 
-  int addPoints(PointVector& PointToAdd, bool downsample_on) {
+  int addPoints(const PointVector& PointToAdd, bool shouldDownsample) {
     int NewPointSize = PointToAdd.size();
     int tree_size = size();
     BoxPointType Box_of_Point{};
     PointType downsample_result, mid_point;
-    bool downsample_switch = downsample_on && DOWNSAMPLE_SWITCH;
+    bool downsample_switch = shouldDownsample && DOWNSAMPLE_SWITCH;
     double minDist, tmp_dist;
     int counter = 0;
     for (int i = 0; i < PointToAdd.size(); i++) {
@@ -1390,6 +1390,11 @@ class KdTree {
       }
     }
     return counter;
+  };
+
+  int addPoint(const PointType& pointToAdd, bool shouldDownsample) {
+    PointVector pt = {pointToAdd};
+    return addPoints(pt, shouldDownsample);
   };
 
   void addPointBoxes(vector<BoxPointType>& boxPoints) {

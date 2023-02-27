@@ -4,14 +4,23 @@
     Email: yixicai@connect.hku.hk
 */
 
-#include <ikd_Tree.h>
+#include "ikd_tree.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <random>
 #include <algorithm>
 
-using PointType = ikdTree_PointType;
-using PointVector = KD_TREE<PointType>::PointVector;
+using namespace std;
+struct PointType {
+  double x, y, z;
+
+  PointType(double px = 0.0f, double py = 0.0f, double pz = 0.0f) {
+    x = px;
+    y = py;
+    z = pz;
+  }
+};
+using PointVector = ikdTree::KD_TREE<PointType>::PointVector;
 
 #define X_MAX 5.0
 #define X_MIN -5.0
@@ -40,7 +49,7 @@ PointVector raw_cmp_result;
 PointVector DeletePoints;
 PointVector removed_points;
 
-KD_TREE<ikdTree_PointType> ikd_Tree(0.3,0.6,0.2);
+ikdTree::KD_TREE<PointType> ikd_Tree(0.3,0.6,0.2);
 
 float rand_float(float x_min, float x_max){
     float rand_ratio = rand()/(float)RAND_MAX;
@@ -101,11 +110,11 @@ void generate_decrement_point_cloud(int num){
     Generate random boxes for box-wise re-insertion on the incremental k-d tree
 */
 
-void generate_box_increment(vector<BoxPointType> & Add_Boxes, float box_length, int box_num){
-    vector<BoxPointType> ().swap(Add_Boxes);
+void generate_box_increment(vector<ikdTree::BoxPointType> & Add_Boxes, float box_length, int box_num){
+    vector<ikdTree::BoxPointType> ().swap(Add_Boxes);
     float d = box_length/2;
     float x_p, y_p, z_p;
-    BoxPointType boxpoint;
+    ikdTree::BoxPointType boxpoint;
     for (int k=0;k < box_num; k++){
         x_p = rand_float(X_MIN, X_MAX);
         y_p = rand_float(Y_MIN, Y_MAX);
@@ -137,11 +146,11 @@ void generate_box_increment(vector<BoxPointType> & Add_Boxes, float box_length, 
     Generate random boxes for box-wise delete on the incremental k-d tree
 */
 
-void generate_box_decrement(vector<BoxPointType> & Delete_Boxes, float box_length, int box_num){
-    vector<BoxPointType> ().swap(Delete_Boxes);
+void generate_box_decrement(vector<ikdTree::BoxPointType> & Delete_Boxes, float box_length, int box_num){
+    vector<ikdTree::BoxPointType> ().swap(Delete_Boxes);
     float d = box_length/2;
     float x_p, y_p, z_p;
-    BoxPointType boxpoint;
+    ikdTree::BoxPointType boxpoint;
     for (int k=0;k < box_num; k++){
         x_p = rand_float(X_MIN, X_MAX);
         y_p = rand_float(Y_MIN, Y_MAX);
@@ -186,9 +195,9 @@ int main(int argc, char** argv){
     printf("Testing ...\n");
     int counter = 0;
     bool flag = true;
-    vector<BoxPointType> Delete_Boxes;
-    vector<BoxPointType> Add_Boxes;
-    vector<float> PointDist;
+    vector<ikdTree::BoxPointType> Delete_Boxes;
+    vector<ikdTree::BoxPointType> Add_Boxes;
+    vector<double> PointDist;
     float average_total_time = 0.0;
     float box_delete_time = 0.0;
     float box_add_time = 0.0;

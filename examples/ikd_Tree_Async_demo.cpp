@@ -4,7 +4,7 @@
 */
 
 
-#include "ikd_Tree.h"
+#include "ikd_tree.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <random>
@@ -15,8 +15,9 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
+using namespace std;
 using PointType = pcl::PointXYZ;
-using PointVector = KD_TREE<PointType>::PointVector;
+using PointVector = ikdTree::KD_TREE<PointType>::PointVector;
 
 void colorize( const PointVector &pc, pcl::PointCloud<pcl::PointXYZRGB> &pc_colored, const std::vector<int> &color) {
     int N = pc.size();
@@ -36,7 +37,7 @@ void colorize( const PointVector &pc, pcl::PointCloud<pcl::PointXYZRGB> &pc_colo
     }
 }
 
-void generate_box(BoxPointType &boxpoint, const PointType &center_pt, vector<float> box_lengths) {
+void generate_box(ikdTree::BoxPointType &boxpoint, const PointType &center_pt, vector<float> box_lengths) {
     float &x_dist = box_lengths[0];
     float &y_dist = box_lengths[1];
     float &z_dist = box_lengths[2];
@@ -51,8 +52,8 @@ void generate_box(BoxPointType &boxpoint, const PointType &center_pt, vector<flo
 
 int main(int argc, char **argv) {
     /*** 1. Initialize k-d tree */
-    KD_TREE<PointType>::Ptr kdtree_ptr(new KD_TREE<PointType>(0.3, 0.6, 0.2));
-    KD_TREE<PointType>      &ikd_Tree        = *kdtree_ptr;
+    ikdTree::KD_TREE<PointType>::Ptr kdtree_ptr(new ikdTree::KD_TREE<PointType>(0.3, 0.6, 0.2));
+    ikdTree::KD_TREE<PointType>      &ikd_Tree        = *kdtree_ptr;
 
     /*** 2. Load point cloud data */
     pcl::PointCloud<PointType>::Ptr src(new pcl::PointCloud<PointType>);
@@ -63,10 +64,10 @@ int main(int argc, char **argv) {
         return (-1);
     }
     printf("Original: %d points are loaded\n", static_cast<int>(src->points.size()));
-
+    PointVector srcPts((*src).points.begin(),(*src).points.end());
     /*** 3. Build ikd-Tree */
     auto start = chrono::high_resolution_clock::now();
-    ikd_Tree.Build((*src).points);
+    ikd_Tree.Build(srcPts);
     auto end      = chrono::high_resolution_clock::now();
     auto duration = chrono::duration_cast<chrono::microseconds>(end - start).count();
     printf("Building tree takes: %0.3f ms\n", float(duration) / 1e3);
@@ -77,11 +78,11 @@ int main(int argc, char **argv) {
     center_pt.x = 5.0;
     center_pt.y = -5.0;
     center_pt.z = 10.0;
-    BoxPointType boxpoint;
+    ikdTree::BoxPointType boxpoint;
     generate_box(boxpoint, center_pt, {10.0, 10.0, 20.0});
 
     start = chrono::high_resolution_clock::now();
-    vector<BoxPointType> boxes = {boxpoint};
+    vector<ikdTree::BoxPointType> boxes = {boxpoint};
     int num_deleted = ikd_Tree.Delete_Point_Boxes(boxes);
     end  = chrono::high_resolution_clock::now();
     duration = chrono::duration_cast<chrono::microseconds>(end - start).count();
@@ -101,8 +102,8 @@ int main(int argc, char **argv) {
 
     /*** 5. Check remaining points in ikd-Tree */
     pcl::PointCloud<PointType>::Ptr Remaining_Points(new pcl::PointCloud<PointType>);
-    ikd_Tree.flatten(ikd_Tree.Root_Node, ikd_Tree.PCL_Storage, NOT_RECORD);
-    Remaining_Points->points = ikd_Tree.PCL_Storage;
+    ikd_Tree.flatten(ikd_Tree.Root_Node, ikd_Tree.PCL_Storage, ikdTree::NOT_RECORD);
+    Remaining_Points->points = std::vector<pcl::PointXYZ,Eigen::aligned_allocator<pcl::PointXYZ>>(ikd_Tree.PCL_Storage.begin(),ikd_Tree.PCL_Storage.end());
     printf("Finally, %d Points remain\n", static_cast<int>(Remaining_Points->points.size()));
 
     /*** Below codes are just for visualization */

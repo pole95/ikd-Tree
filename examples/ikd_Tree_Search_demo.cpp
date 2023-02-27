@@ -2,7 +2,7 @@
     Description: An example to introduce box search and radius search using ikd-Tree
     Author: Hyungtae Lim, Yixi Cai
 */
-#include "ikd_Tree.h"
+#include "ikd_tree.hpp"
 #include <stdio.h>
 #include <stdlib.h>
 #include <random>
@@ -13,10 +13,10 @@
 #include <pcl/io/pcd_io.h>
 #include <pcl/visualization/pcl_visualizer.h>
 
-
+using namespace std;
 using PointType = pcl::PointXYZ;
-using PointVector = KD_TREE<PointType>::PointVector;
-template class KD_TREE<pcl::PointXYZ>;
+using PointVector = ikdTree::KD_TREE<PointType>::PointVector;
+template class ikdTree::KD_TREE<pcl::PointXYZ>;
 
 void colorize( const PointVector &pc, pcl::PointCloud<pcl::PointXYZRGB> &pc_colored, const std::vector<int> &color) {
     int N = pc.size();
